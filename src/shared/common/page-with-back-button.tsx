@@ -18,8 +18,7 @@ export function PageWithBackButton({
                 size='icon'
                 variant='outline'
                 className='rounded-full'
-                asChild
-            >
+                asChild>
                 <Link href={backButtonHref}>
                     <div className='sr-only'>Back</div>
                     <CaretLeftIcon className='size-8' />

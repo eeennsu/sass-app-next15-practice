@@ -1,22 +1,10 @@
 import { subscriptionTiers, TierNames } from '@/lib/data/subscription-tiers'
 import { relations } from 'drizzle-orm'
-import {
-    pgTable,
-    uuid,
-    text,
-    timestamp,
-    index,
-    boolean,
-    real,
-    primaryKey,
-    pgEnum,
-} from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, index, boolean, real, primaryKey, pgEnum } from 'drizzle-orm/pg-core'
 
 // timezone는 시간대를 포함하여 저장함. 이는 타임스탬프를 저장할 떄 해당 시간대 정보도 함께 저장하여, db에서 시간대를 자동으로 관리할 수 있도록 함
 // 이를 통해 다른 시간대의 사용자나 시스템에서 조회할 떄 자동으로 현지 시간대로 변환하여 보여줄 수 있음
-const createdAt = timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow()
+const createdAt = timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 const updatedAt = timestamp('updated_at', { withTimezone: true })
     .notNull()
     .$onUpdate(() => new Date())
@@ -36,11 +24,9 @@ export const ProductTable = pgTable(
     // clerkUserId 필드에 인덱스를 추가. 이 인덱스를 통해 clerkUserId로 검색할 떄 db의 검색 속도를 높일 수 있음
     (table) => {
         return {
-            clerkUserIdIndex: index('products.clerk_user_id_index').on(
-                table.clerkUserId,
-            ),
+            clerkUserIdIndex: index('products.clerk_user_id_index').on(table.clerkUserId),
         }
-    },
+    }
 )
 
 export const productRelation = relations(ProductTable, ({ one, many }) => {
@@ -63,11 +49,9 @@ export const ProductCustomizationTable = pgTable('product_customizations', {
     locationMessage: text('location_message')
         .notNull()
         .default(
-            'Hey! It looks like you are from <b>{country}</b>. We support Parity Purchasing Power, so if you need it, use code <b>“{coupon}”</b> to get <b>{discount}%</b> off.',
+            'Hey! It looks like you are from <b>{country}</b>. We support Parity Purchasing Power, so if you need it, use code <b>“{coupon}”</b> to get <b>{discount}%</b> off.'
         ),
-    backgroundColor: text('background_color')
-        .notNull()
-        .default('hsl(193, 82%, 31%)'),
+    backgroundColor: text('background_color').notNull().default('hsl(193, 82%, 31%)'),
     textColor: text('text_color').notNull().default('hsl(0, 0%, 100%)'),
     fontSize: text('font_size').notNull().default('1rem'),
     bannerContainer: text('banner_container').notNull().default('body'),
@@ -76,17 +60,14 @@ export const ProductCustomizationTable = pgTable('product_customizations', {
     updatedAt,
 })
 
-export const productCustomizationRelation = relations(
-    ProductCustomizationTable,
-    ({ one }) => {
-        return {
-            product: one(ProductTable, {
-                fields: [ProductCustomizationTable.productId],
-                references: [ProductTable.id],
-            }),
-        }
-    },
-)
+export const productCustomizationRelation = relations(ProductCustomizationTable, ({ one }) => {
+    return {
+        product: one(ProductTable, {
+            fields: [ProductCustomizationTable.productId],
+            references: [ProductTable.id],
+        }),
+    }
+})
 
 export const ProductViewTable = pgTable('product_views', {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -96,9 +77,7 @@ export const ProductViewTable = pgTable('product_views', {
     countryId: uuid('country_id').references(() => CountryTable.id, {
         onDelete: 'cascade',
     }),
-    visitedAt: timestamp('visited_at', { withTimezone: true })
-        .notNull()
-        .defaultNow(),
+    visitedAt: timestamp('visited_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
 export const productViewRelations = relations(ProductViewTable, ({ one }) => {
@@ -138,9 +117,7 @@ export const countryRelation = relations(CountryTable, ({ one, many }) => {
 export const CountryGroupTable = pgTable('country_groups', {
     id: uuid('id').primaryKey().defaultRandom(),
     name: text('name').notNull().unique(),
-    recommendedDiscountPercentage: real(
-        'recommended_discount_percentage',
-    ).notNull(),
+    recommendedDiscountPercentage: real('recommended_discount_percentage').notNull(),
     createdAt,
     updatedAt,
 })
@@ -172,29 +149,23 @@ export const CountryGroupDiscountTable = pgTable(
                 columns: [table.countryGroupId, table.productId],
             }),
         }
-    },
+    }
 )
 
-export const countryGroupDiscountRelation = relations(
-    CountryGroupDiscountTable,
-    ({ one }) => {
-        return {
-            countryGroup: one(CountryGroupTable, {
-                fields: [CountryGroupDiscountTable.countryGroupId],
-                references: [CountryGroupTable.id],
-            }),
-            product: one(ProductTable, {
-                fields: [CountryGroupDiscountTable.productId],
-                references: [ProductTable.id],
-            }),
-        }
-    },
-)
+export const countryGroupDiscountRelation = relations(CountryGroupDiscountTable, ({ one }) => {
+    return {
+        countryGroup: one(CountryGroupTable, {
+            fields: [CountryGroupDiscountTable.countryGroupId],
+            references: [CountryGroupTable.id],
+        }),
+        product: one(ProductTable, {
+            fields: [CountryGroupDiscountTable.productId],
+            references: [ProductTable.id],
+        }),
+    }
+})
 
-export const TierEnum = pgEnum(
-    'tier',
-    Object.keys(subscriptionTiers) as [TierNames],
-)
+export const TierEnum = pgEnum('tier', Object.keys(subscriptionTiers) as [TierNames])
 
 export const UserSubscriptionTable = pgTable(
     'user_subscriptions',
@@ -210,12 +181,8 @@ export const UserSubscriptionTable = pgTable(
     },
     (table) => {
         return {
-            clerkUserIndex: index('user_subscriptions.clerk_user_id_index').on(
-                table.clerkUserId,
-            ),
-            stripeCustomerIdIndex: index(
-                'user_subscriptions.stripe_customer_id_index',
-            ).on(table.stripeCustomerId),
+            clerkUserIndex: index('user_subscriptions.clerk_user_id_index').on(table.clerkUserId),
+            stripeCustomerIdIndex: index('user_subscriptions.stripe_customer_id_index').on(table.stripeCustomerId),
         }
-    },
+    }
 )

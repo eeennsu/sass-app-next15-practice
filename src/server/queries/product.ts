@@ -1,11 +1,6 @@
 import { db } from '@/drizzle/db'
 import { ProductCustomizationTable, ProductTable } from '@/drizzle/schema'
-import {
-    CACHE_TAGS,
-    dbCache,
-    getUserTag,
-    revalidateDbCache,
-} from '@/lib/actions/cache'
+import { CACHE_TAGS, dbCache, getIdTag, getUserTag, revalidateDbCache } from '@/lib/actions/cache'
 import { and, eq } from 'drizzle-orm'
 
 export function getProducts({
@@ -36,18 +31,11 @@ function getProductsInternal({
     })
 }
 
-export async function createProduct({
-    product,
-}: {
-    product: typeof ProductTable.$inferInsert
-}) {
-    const [newProduct] = await db
-        .insert(ProductTable)
-        .values(product)
-        .returning({
-            id: ProductTable.id,
-            clerkUserId: ProductTable.clerkUserId,
-        })
+export async function createProduct({ product }: { product: typeof ProductTable.$inferInsert }) {
+    const [newProduct] = await db.insert(ProductTable).values(product).returning({
+        id: ProductTable.id,
+        clerkUserId: ProductTable.clerkUserId,
+    })
 
     try {
         await db
@@ -81,12 +69,7 @@ export async function deleteProduct({
 }) {
     const { rowCount } = await db
         .delete(ProductTable)
-        .where(
-            and(
-                eq(ProductTable.id, productId),
-                eq(ProductTable.clerkUserId, userId),
-            ),
-        )
+        .where(and(eq(ProductTable.id, productId), eq(ProductTable.clerkUserId, userId)))
 
     const isDeleted = rowCount > 0
 
@@ -99,4 +82,30 @@ export async function deleteProduct({
     }
 
     return isDeleted
+}
+
+export async function getProduct({
+    productId,
+    userId,
+}: {
+    productId: (typeof ProductTable.$inferSelect)['id']
+    userId: (typeof ProductTable.$inferSelect)['clerkUserId']
+}) {
+    const cachedFn = dbCache(getProductInternal, {
+        tags: [getIdTag({ tag: CACHE_TAGS.products, id: productId })],
+    })
+
+    return cachedFn({ productId, userId })
+}
+
+export function getProductInternal({
+    productId,
+    userId,
+}: {
+    productId: (typeof ProductTable.$inferSelect)['id']
+    userId: (typeof ProductTable.$inferSelect)['clerkUserId']
+}) {
+    return db.query.ProductTable.findFirst({
+        where: ({ id, clerkUserId }, { eq, and }) => and(eq(id, productId), eq(clerkUserId, userId)),
+    })
 }

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { removeTrailingSlash } from '../utils/string';
+import { removeTrailingSlash } from '../utils/string'
 
 export const productDetailsSchema = z.object({
     name: z.string().min(1, 'required'),

@@ -6,8 +6,7 @@ export default function NewProductPage() {
     return (
         <PageWithBackButton
             pageTitle='Create Product'
-            backButtonHref='/dashboard/products'
-        >
+            backButtonHref='/dashboard/products'>
             {/* <HasPermission
                 permission={canCreateProduct}
                 renderFallback

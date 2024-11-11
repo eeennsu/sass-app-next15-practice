@@ -2,10 +2,7 @@ import { Webhook } from 'svix'
 import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
 import { serverEnv } from '@/lib/data/env/server-env'
-import {
-    createUserSubscription,
-    deleteUser,
-} from '@/server/queries/subscription'
+import { createUserSubscription, deleteUser } from '@/server/queries/subscription'
 
 export async function POST(req: Request) {
     const headerPayload = await headers()

@@ -22,8 +22,7 @@ export function DeleteProductAlertDialogContent({ id }: { id: string }) {
             <AlertDialogHeader>
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete
-                    this product.
+                    This action cannot be undone. This will permanently delete this product.
                 </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -38,15 +37,12 @@ export function DeleteProductAlertDialogContent({ id }: { id: string }) {
                                 toast({
                                     title: data?.error ? 'Error' : 'Success',
                                     description: data?.message,
-                                    variant: data?.error
-                                        ? 'destructive'
-                                        : 'default',
+                                    variant: data?.error ? 'destructive' : 'default',
                                 })
                             }
                         })
                     }}
-                    disabled={isDeletePending}
-                >
+                    disabled={isDeletePending}>
                     Delete
                 </AlertDialogAction>
             </AlertDialogFooter>

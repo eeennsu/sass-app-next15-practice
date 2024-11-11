@@ -4,7 +4,7 @@ import type { FC } from 'react'
 import Link from 'next/link'
 import { Button } from '@/lib/components/button'
 import { ArrowRightIcon, PlusIcon } from 'lucide-react'
-import { ProductGrid } from '@/features/dashboard/product-grid';
+import { ProductGrid } from '@/features/dashboard/product-grid'
 
 const Page: FC = async () => {
     const { userId, redirectToSignIn } = await auth()
@@ -24,8 +24,7 @@ const Page: FC = async () => {
             <h2 className='mb-6 text-3xl font-semibold flex justify-between'>
                 <Link
                     className='group flex gap-2 items-center hover:underline'
-                    href='/dashboard/products'
-                >
+                    href='/dashboard/products'>
                     Products
                     <ArrowRightIcon className='group-hover:translate-x-1 transition-transform' />
                 </Link>
@@ -40,8 +39,7 @@ const Page: FC = async () => {
             <h2 className='mb-6 text-3xl font-semibold flex justify-between mt-12'>
                 <Link
                     href='/dashboard/analytics'
-                    className='flex gap-2 items-center hover:underline group'
-                >
+                    className='flex gap-2 items-center hover:underline group'>
                     Analytics
                     <ArrowRightIcon className='group-hover:translate-x-1 transition-transform' />
                 </Link>
@@ -58,13 +56,11 @@ export default Page
 const NoProducts: FC = () => {
     return (
         <div className='mt-32 text-center text-balance'>
-            <h1 className='text-4xl font-semibold mb-2'>
-                You have no products
-            </h1>
-            <p className='mb-4'>
-                Get started with PPP discounts by creating a product
-            </p>
-            <Button size='lg' asChild>
+            <h1 className='text-4xl font-semibold mb-2'>You have no products</h1>
+            <p className='mb-4'>Get started with PPP discounts by creating a product</p>
+            <Button
+                size='lg'
+                asChild>
                 <Link href='/dashboard/products/new'>Add Product</Link>
             </Button>
         </div>

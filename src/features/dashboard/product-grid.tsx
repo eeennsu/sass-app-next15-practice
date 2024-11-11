@@ -1,11 +1,5 @@
 import { Button } from '@/lib/components/button'
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/lib/components/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/lib/components/card'
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import Link from 'next/link'
 import {
@@ -33,7 +27,10 @@ export function ProductGrid({
     return (
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
             {products.map((product) => (
-                <ProductCard key={product.id} {...product} />
+                <ProductCard
+                    key={product.id}
+                    {...product}
+                />
             ))}
         </div>
     )
@@ -55,9 +52,7 @@ export function ProductCard({
             <CardHeader>
                 <div className='flex gap-2 justify-between items-end'>
                     <CardTitle>
-                        <Link href={`/dashboard/products/${id}/edit`}>
-                            {name}
-                        </Link>
+                        <Link href={`/dashboard/products/${id}/edit`}>{name}</Link>
                     </CardTitle>
                     <Dialog>
                         <AlertDialog>
@@ -65,30 +60,23 @@ export function ProductCard({
                                 <DropdownMenuTrigger asChild>
                                     <Button
                                         variant='outline'
-                                        className='size-8 p-0'
-                                    >
-                                        <div className='sr-only'>
-                                            Action Menu
-                                        </div>
+                                        className='size-8 p-0'>
+                                        <div className='sr-only'>Action Menu</div>
                                         <DotsHorizontalIcon className='size-4' />
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
-                                    <DropdownMenuItem asChild>
-                                        <Link
-                                            href={`/dashboard/products/${id}/edit`}
-                                        >
-                                            Edit
-                                        </Link>
+                                    <DropdownMenuItem
+                                        asChild
+                                        className='cursor-pointer'>
+                                        <Link href={`/dashboard/products/${id}/edit`}>Edit</Link>
                                     </DropdownMenuItem>
                                     <DialogTrigger asChild>
-                                        <DropdownMenuItem>
-                                            Add To Site
-                                        </DropdownMenuItem>
+                                        <DropdownMenuItem className='cursor-pointer'>Add To Site</DropdownMenuItem>
                                     </DialogTrigger>
                                     <DropdownMenuSeparator />
                                     <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem>
+                                        <DropdownMenuItem className='cursor-pointer bg-red-600 text-white hover:!bg-red-500'>
                                             Delete
                                         </DropdownMenuItem>
                                     </AlertDialogTrigger>

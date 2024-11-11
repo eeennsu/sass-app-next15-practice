@@ -3,15 +3,7 @@
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/lib/components/form'
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/lib/components/form'
 import { Input } from '@/lib/components/input'
 import { Textarea } from '@/lib/components/textarea'
 import { Button } from '@/lib/components/button'
@@ -47,7 +39,7 @@ export function ProductDetailsForm({
 
     const onSubmit: SubmitHandler<ProductDetails> = async (values) => {
         const data = await createProductAction(values)
-  
+
         if (data?.message) {
             toast({
                 title: data.error ? 'Error' : 'Success',
@@ -61,8 +53,7 @@ export function ProductDetailsForm({
         <Form {...form}>
             <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className='flex gap-6 flex-col'
-            >
+                className='flex gap-6 flex-col'>
                 <div className='grid gap-6 grid-cols-1 lg:grid-cols-2'>
                     <FormField
                         control={form.control}
@@ -93,8 +84,7 @@ export function ProductDetailsForm({
                                     <Input {...field} />
                                 </FormControl>
                                 <FormDescription>
-                                    Include the protocol (http/https) and the
-                                    full path to the sales page
+                                    Include the protocol (http/https) and the full path to the sales page
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>
@@ -114,15 +104,16 @@ export function ProductDetailsForm({
                                 />
                             </FormControl>
                             <FormDescription>
-                                An optional description to help distinguish your
-                                product from other products
+                                An optional description to help distinguish your product from other products
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
                 <div className='self-end'>
-                    <Button disabled={isLoading} type='submit'>
+                    <Button
+                        disabled={isLoading}
+                        type='submit'>
                         Save
                     </Button>
                 </div>

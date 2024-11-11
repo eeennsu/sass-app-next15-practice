@@ -1,13 +1,7 @@
 'use client'
 
 import { Button } from '@/lib/components/button'
-import {
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/lib/components/dialog'
+import { DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/lib/components/dialog'
 import { clientEnv } from '@/lib/data/env/client-env'
 import { CopyCheckIcon, CopyIcon, CopyXIcon } from 'lucide-react'
 import { useState } from 'react'
@@ -34,12 +28,10 @@ export function AddToSiteProductModalContent({ id }: { id: string }) {
     return (
         <DialogContent className='max-w-max'>
             <DialogHeader>
-                <DialogTitle className='text-2xl'>
-                    Start Earning PPP Sales!
-                </DialogTitle>
+                <DialogTitle className='text-2xl'>Start Earning PPP Sales!</DialogTitle>
                 <DialogDescription>
-                    All you need to do is copy the below script into your site
-                    and your customers will start seeing PPP discounts!
+                    All you need to do is copy the below script into your site and your customers will start seeing PPP
+                    discounts!
                 </DialogDescription>
             </DialogHeader>
             <pre className='mb-4 overflow-x-auto p-4 bg-secondary rounded max-w-screen-xl text-secondary-foreground'>
@@ -58,8 +50,7 @@ export function AddToSiteProductModalContent({ id }: { id: string }) {
                                 setCopyState('error')
                                 setTimeout(() => setCopyState('idle'), 2000)
                             })
-                    }}
-                >
+                    }}>
                     {<Icon className='size-4 mr-2' />}
                     {copyText[copyState]}
                 </Button>

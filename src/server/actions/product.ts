@@ -5,7 +5,7 @@ import { auth } from '@clerk/nextjs/server'
 import { createProduct, deleteProduct } from '../queries/product'
 import { redirect } from 'next/navigation'
 import { ProductTable } from '@/drizzle/schema'
-import { revalidatePath } from 'next/cache';
+import { revalidatePath } from 'next/cache'
 
 export type ActionReturnType = Promise<
     | {
@@ -15,9 +15,7 @@ export type ActionReturnType = Promise<
     | undefined
 >
 
-export async function createProductAction(
-    unsafeProductData: ProductDetails,
-): ActionReturnType {
+export async function createProductAction(unsafeProductData: ProductDetails): ActionReturnType {
     const { userId } = await auth()
 
     if (!userId) {
@@ -64,8 +62,6 @@ export async function deleteProductAction({
 
     return {
         error: !isSuccess,
-        message: isSuccess
-            ? 'Product deleted successfully'
-            : 'Error deleting product',
+        message: isSuccess ? 'Product deleted successfully' : 'Error deleting product',
     }
 }
