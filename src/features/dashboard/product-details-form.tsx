@@ -1,7 +1,6 @@
 'use client'
 
 import { SubmitHandler, useForm } from 'react-hook-form'
-import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/lib/components/form'
 import { Input } from '@/lib/components/input'
@@ -10,13 +9,12 @@ import { Button } from '@/lib/components/button'
 import { useToast } from '@/hooks/use-toast'
 import { ProductDetails, productDetailsSchema } from '@/lib/schemas/product'
 import { RequiredLabelIcon } from '@/shared/icons/required-label'
-import { createProductAction } from '@/server/actions/product'
-// import { createProduct, updateProduct } from '@/server/actions/products'
+import { createProductAction, editProductAction } from '@/server/actions/product-action'
 
 export function ProductDetailsForm({
-    product,
+    initialProduct,
 }: {
-    product?: {
+    initialProduct?: {
         id: string
         name: string
         description: string | null
@@ -26,8 +24,8 @@ export function ProductDetailsForm({
     const { toast } = useToast()
     const form = useForm<ProductDetails>({
         resolver: zodResolver(productDetailsSchema),
-        defaultValues: product
-            ? { ...product, description: product.description ?? '' }
+        defaultValues: initialProduct
+            ? { ...initialProduct, description: initialProduct.description ?? '' }
             : {
                   name: '',
                   url: '',
@@ -37,16 +35,22 @@ export function ProductDetailsForm({
 
     const isLoading = form.formState.isSubmitting || form.formState.isLoading
 
-    const onSubmit: SubmitHandler<ProductDetails> = async (values) => {
-        const data = await createProductAction(values)
+    const onSubmit: SubmitHandler<ProductDetails> = async (product) => {
+        const action = initialProduct
+            ? editProductAction.bind(null, { productId: initialProduct.id, editedProduct: product })
+            : createProductAction.bind(null, { createdProduct: product })
+
+        const data = await action()
 
         if (data?.message) {
             toast({
-                title: data.error ? 'Error' : 'Success',
-                description: data.message,
-                variant: data.error ? 'destructive' : 'default',
+                title: data?.error ? 'Error' : 'Success',
+                description: data?.message,
+                variant: data?.error ? 'destructive' : 'default',
             })
         }
+
+        form.reset()
     }
 
     return (
@@ -112,7 +116,7 @@ export function ProductDetailsForm({
                 />
                 <div className='self-end'>
                     <Button
-                        disabled={isLoading}
+                        disabled={isLoading || !form.formState.isDirty}
                         type='submit'>
                         Save
                     </Button>

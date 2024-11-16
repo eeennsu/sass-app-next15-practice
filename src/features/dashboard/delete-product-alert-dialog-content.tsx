@@ -11,7 +11,7 @@ import {
 } from '@/lib/components/alert-dialog'
 import { useToast } from '@/hooks/use-toast'
 import { useTransition } from 'react'
-import { deleteProductAction } from '@/server/actions/product'
+import { deleteProductAction } from '@/server/actions/product-action'
 
 export function DeleteProductAlertDialogContent({ id }: { id: string }) {
     const [isDeletePending, startDeleteTransition] = useTransition()

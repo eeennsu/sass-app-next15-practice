@@ -117,7 +117,7 @@ export const countryRelation = relations(CountryTable, ({ one, many }) => {
 export const CountryGroupTable = pgTable('country_groups', {
     id: uuid('id').primaryKey().defaultRandom(),
     name: text('name').notNull().unique(),
-    recommendedDiscountPercentage: real('recommended_discount_percentage').notNull(),
+    recommendedDiscountPercentage: real('recommended_discount_percentage'),
     createdAt,
     updatedAt,
 })

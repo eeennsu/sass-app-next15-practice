@@ -1,4 +1,4 @@
-import { getProducts } from '@/server/queries/product'
+import { getProducts } from '@/server/services/product-service'
 import { auth } from '@clerk/nextjs/server'
 import type { FC } from 'react'
 import Link from 'next/link'

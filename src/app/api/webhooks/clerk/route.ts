@@ -2,7 +2,7 @@ import { Webhook } from 'svix'
 import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
 import { serverEnv } from '@/lib/data/env/server-env'
-import { createUserSubscription, deleteUser } from '@/server/queries/subscription'
+import { createUserSubscription, deleteUser } from '@/server/services/subscription-service'
 
 export async function POST(req: Request) {
     const headerPayload = await headers()
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     const svixSignature = headerPayload.get('svix-signature')
 
     if (!svixId || !svixTimestamp || !svixSignature) {
-        return new Response('Error occured -- no svix headers', {
+        return new Response('Error occurred -- no svix headers', {
             status: 400,
         })
     }
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
         }) as WebhookEvent
     } catch (err) {
         console.error('Error verifying webhook:', err)
-        return new Response('Error occured', {
+        return new Response('Error', {
             status: 400,
         })
     }
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     switch (event.type) {
         case 'user.created':
             if (!event.data?.id) {
-                console.error('Error occured -- no user id')
+                console.error('Error -- no user id')
                 return
             }
 
@@ -53,11 +53,11 @@ export async function POST(req: Request) {
 
         case 'user.deleted':
             if (!event.data?.id) {
-                console.error('Error occured -- no user id')
+                console.error('Error -- no user id')
                 return
             }
 
-            await deleteUser({ clerkUserId: event.data.id })
+            await deleteUser({ userId: event.data.id })
 
             // TODO: remove stripe subscription
 

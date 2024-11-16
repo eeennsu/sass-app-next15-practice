@@ -1,13 +1,15 @@
 {
     "name": "sass-practice",
     "version": "0.1.0",
+    "type": "module",
     "private": true,
     "scripts": {
         "dev": "next dev --turbopack",
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
-        "pretty": "prettier --write \"src/**/*.{js,ts,tsx,jsx,json,css}\""
+        "pretty": "prettier --write \"src/**/*.{js,ts,tsx,jsx,json,css}\"",
+        "db:update-data-country": "tsx --env-file=.env ./src/lib/tasks/update-country-groups.ts"
     },
     "dependencies": {
         "@clerk/nextjs": "^6.1.3",

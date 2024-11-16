@@ -8,3 +8,21 @@ export const productDetailsSchema = z.object({
 })
 
 export type ProductDetails = z.infer<typeof productDetailsSchema>
+
+export const productCountryDiscountsSchema = z.object({
+    groups: z.array(
+        z.object({
+            countryGroupId: z.string().min(1, 'Required'),
+            discountPercentage: z
+                .number()
+                .max(100)
+                .min(1)
+                .or(z.nan())
+                .transform((v) => (isNaN(v) ? undefined : v))
+                .optional(),
+            coupon: z.string().optional(),
+        })
+    ),
+})
+
+export type ProductCountryDiscount = z.infer<typeof productCountryDiscountsSchema>

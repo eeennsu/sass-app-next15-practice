@@ -7,6 +7,8 @@ export const CACHE_TAGS = {
     products: 'products',
     productViews: 'productViews',
     userSubscription: 'userSubscription',
+    countries: 'countries',
+    countryGroups: 'countryGroups',
 } as const
 
 // 전역 범위에서 사용하는 캐시 태그
