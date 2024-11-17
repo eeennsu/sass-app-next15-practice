@@ -1,9 +1,14 @@
 import { db } from '@/drizzle/db'
 import { ProductTable, UserSubscriptionTable } from '@/drizzle/schema'
-import { CACHE_TAGS, revalidateDbCache } from '@/lib/actions/cache'
-import { eq } from 'drizzle-orm'
+import { subscriptionTiers } from '@/lib/data/subscription-tiers'
+import { CACHE_TAGS, dbCache, getUserTag, revalidateDbCache } from '@/lib/utils/cache'
+import { eq, SQL } from 'drizzle-orm'
 
-export async function createUserSubscription(userSubscription: typeof UserSubscriptionTable.$inferInsert) {
+export async function createUserSubscription({
+    userSubscription,
+}: {
+    userSubscription: typeof UserSubscriptionTable.$inferInsert
+}) {
     const [newUserSubscription] = await db
         .insert(UserSubscriptionTable)
         .values(userSubscription)
@@ -24,6 +29,31 @@ export async function createUserSubscription(userSubscription: typeof UserSubscr
     }
 
     return newUserSubscription
+}
+
+export async function updateUserSubscription({
+    userSubscription,
+    whereSQL,
+}: {
+    userSubscription: Partial<typeof UserSubscriptionTable.$inferInsert>
+    whereSQL: SQL
+}) {
+    const [updatedUserSubscription] = await db
+        .update(UserSubscriptionTable)
+        .set(userSubscription)
+        .where(whereSQL)
+        .returning({
+            id: UserSubscriptionTable.id,
+            userId: UserSubscriptionTable.clerkUserId,
+        })
+
+    if (!!updatedUserSubscription) {
+        revalidateDbCache({
+            tag: CACHE_TAGS.userSubscription,
+            id: updatedUserSubscription.id,
+            userId: updatedUserSubscription.userId,
+        })
+    }
 }
 
 export async function deleteUser({ userId }: { userId: string }) {
@@ -55,4 +85,33 @@ export async function deleteUser({ userId }: { userId: string }) {
     }
 
     return [userSubscriptions, products]
+}
+
+export function getUserSubscription({ userId }: { userId: string }) {
+    const cachedFn = dbCache(getUserSubscriptionInternal, {
+        tags: [getUserTag({ tag: CACHE_TAGS.userSubscription, userId })],
+    })
+
+    return cachedFn({ userId })
+}
+
+function getUserSubscriptionInternal({ userId }: Parameters<typeof getUserSubscription>[0]) {
+    return db.query.UserSubscriptionTable.findFirst({
+        where: ({ clerkUserId }, { eq }) => eq(clerkUserId, userId),
+    })
+}
+
+export async function getUserSubscriptionTier({ userId }: { userId: string }) {
+    const userSubscription = await db.query.UserSubscriptionTable.findFirst({
+        where: ({ clerkUserId }) => eq(clerkUserId, userId),
+        columns: {
+            tier: true,
+        },
+    })
+
+    if (!userSubscription) {
+        throw new Error('User has no subscription')
+    }
+
+    return subscriptionTiers[userSubscription.tier]
 }

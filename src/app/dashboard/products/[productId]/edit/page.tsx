@@ -1,9 +1,11 @@
 import { Product } from '@/drizzle/types/table-types'
 import { CountryDiscountsForm } from '@/features/dashboard/country-discounts-form'
+import { ProductCustomizationForm } from '@/features/dashboard/product-customization-form'
 import { ProductDetailsForm } from '@/features/dashboard/product-details-form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/lib/components/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/lib/components/tabs'
-import { getProduct, getProductCountryGroups } from '@/server/services/product-service'
+import { canCustomizeBanner, canRemoveBranding } from '@/server/services/permission-service'
+import { getProduct, getProductCountryGroups, getProductCustomization } from '@/server/services/product-service'
 import { PageWithBackButton } from '@/shared/common/page-with-back-button'
 import { auth } from '@clerk/nextjs/server'
 import { notFound } from 'next/navigation'
@@ -96,9 +98,12 @@ async function CountryTab({ productId, userId }: { productId: Product['id']; use
 }
 
 async function CustomizationsTab({ productId, userId }: { productId: Product['id']; userId: string }) {
-    // const customization = await getProductCustomization({ productId, userId })
+    const customizationProduct = await getProductCustomization({ productId, userId })
 
-    // if (customization == null) return notFound()
+    if (!customizationProduct) return notFound()
+
+    const canCustomize = await canCustomizeBanner({ userId })
+    const canRemove = await canRemoveBranding({ userId })
 
     return (
         <Card>
@@ -106,11 +111,11 @@ async function CustomizationsTab({ productId, userId }: { productId: Product['id
                 <CardTitle className='text-xl'>Banner Customization</CardTitle>
             </CardHeader>
             <CardContent>
-                {/* <ProductCustomizationForm
-                    canRemoveBranding={await canRemoveBranding(userId)}
-                    canCustomizeBanner={await canCustomizeBanner(userId)}
-                    customization={customization}
-                /> */}
+                <ProductCustomizationForm
+                    canCustomizeBanner={canCustomize}
+                    canRemoveBranding={canRemove}
+                    customizationProduct={customizationProduct}
+                />
             </CardContent>
         </Card>
     )

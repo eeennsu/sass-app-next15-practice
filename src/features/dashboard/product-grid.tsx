@@ -69,7 +69,7 @@ export function ProductCard({
                                     <DropdownMenuItem
                                         asChild
                                         className='cursor-pointer'>
-                                        <Link href={`/dashboard/products/${id}/edit`}>Edit</Link>
+                                        <Link href={`/dashboard/products/${id}/edit?tab=details`}>Edit</Link>
                                     </DropdownMenuItem>
                                     <DialogTrigger asChild>
                                         <DropdownMenuItem className='cursor-pointer'>Add To Site</DropdownMenuItem>

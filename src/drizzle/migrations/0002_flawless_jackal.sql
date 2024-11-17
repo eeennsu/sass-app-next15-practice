@@ -1,0 +1,1 @@
+ALTER TABLE "country_groups" ALTER COLUMN "recommended_discount_percentage" DROP NOT NULL;

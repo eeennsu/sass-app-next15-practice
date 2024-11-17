@@ -1,7 +1,8 @@
 import { db } from '@/drizzle/db'
-import { CountryGroupTable, CountryTable } from '@/drizzle/schema'
 import countriesByDiscount from '@/lib/data/countries-by-discount.json'
+import { CountryGroupTable, CountryTable } from '@/drizzle/schema'
 import { sql } from 'drizzle-orm'
+import { CACHE_TAGS, revalidateDbCache } from '../utils/cache'
 
 const groupCount = await updateCountryGroups()
 const countryCount = await updateCountries()
@@ -9,10 +10,9 @@ const countryCount = await updateCountries()
 console.log(`Updated ${groupCount} country groups and ${countryCount} countries`)
 
 async function updateCountryGroups() {
-    const countryGroupInsertData = countriesByDiscount.map((discount) => ({
-        name: discount.name,
-        recommendedDiscountPercentage: discount.recommendedDiscountPercentage,
-    }))
+    const countryGroupInsertData = countriesByDiscount.map(({ name, recommendedDiscountPercentage }) => {
+        return { name, recommendedDiscountPercentage }
+    })
 
     const { rowCount } = await db
         .insert(CountryGroupTable)
@@ -31,24 +31,22 @@ async function updateCountryGroups() {
 
 async function updateCountries() {
     const countryGroups = await db.query.CountryGroupTable.findMany({
-        columns: {
-            id: true,
-            name: true,
-        },
+        columns: { id: true, name: true },
     })
 
-    const countryInsertData = countriesByDiscount.flatMap(({ name, countries }) => {
-        const countryGroup = countryGroups.find((group) => group?.name)
-
-        if (!countryGroup) {
-            throw new Error(`Country group not found for country ${name}`)
+    const countryInsertData = countriesByDiscount.flatMap(({ countries, name }) => {
+        const countryGroup = countryGroups.find((group) => group.name === name)
+        if (countryGroup == null) {
+            throw new Error(`Country group "${name}" not found`)
         }
 
-        return countries.map((country) => ({
-            countryGroupId: countryGroup.id,
-            name: country.countryName,
-            code: country.country,
-        }))
+        return countries.map((country) => {
+            return {
+                name: country.countryName,
+                code: country.country,
+                countryGroupId: countryGroup.id,
+            }
+        })
     })
 
     const { rowCount } = await db

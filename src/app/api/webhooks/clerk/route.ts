@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
 import { serverEnv } from '@/lib/data/env/server-env'
 import { createUserSubscription, deleteUser } from '@/server/services/subscription-service'
+import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
     const headerPayload = await headers()
@@ -12,9 +13,7 @@ export async function POST(req: Request) {
     const svixSignature = headerPayload.get('svix-signature')
 
     if (!svixId || !svixTimestamp || !svixSignature) {
-        return new Response('Error occurred -- no svix headers', {
-            status: 400,
-        })
+        return NextResponse.json({ message: 'Error: no svix headers' }, { status: 400 })
     }
 
     const payload = await req.json()
@@ -32,31 +31,31 @@ export async function POST(req: Request) {
         }) as WebhookEvent
     } catch (err) {
         console.error('Error verifying webhook:', err)
-        return new Response('Error', {
-            status: 400,
-        })
+        return NextResponse.json(
+            { message: 'Error: could not verify webhook' },
+            {
+                status: 400,
+            }
+        )
+    }
+
+    if (!event.data?.id) {
+        console.error('Error -- no user id')
+        return
     }
 
     switch (event.type) {
         case 'user.created':
-            if (!event.data?.id) {
-                console.error('Error -- no user id')
-                return
-            }
-
             await createUserSubscription({
-                clerkUserId: event.data.id,
-                tier: 'Free',
+                userSubscription: {
+                    clerkUserId: event.data.id,
+                    tier: 'Free',
+                },
             })
 
             break
 
         case 'user.deleted':
-            if (!event.data?.id) {
-                console.error('Error -- no user id')
-                return
-            }
-
             await deleteUser({ userId: event.data.id })
 
             // TODO: remove stripe subscription
@@ -64,5 +63,5 @@ export async function POST(req: Request) {
             break
     }
 
-    return new Response('', { status: 200 })
+    return NextResponse.json(null)
 }

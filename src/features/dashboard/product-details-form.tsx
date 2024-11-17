@@ -7,9 +7,10 @@ import { Input } from '@/lib/components/input'
 import { Textarea } from '@/lib/components/textarea'
 import { Button } from '@/lib/components/button'
 import { useToast } from '@/hooks/use-toast'
-import { ProductDetails, productDetailsSchema } from '@/lib/schemas/product'
+import { ProductDetails, productDetailsSchema } from '@/lib/schemas/product-form'
 import { RequiredLabelIcon } from '@/shared/icons/required-label'
 import { createProductAction, editProductAction } from '@/server/actions/product-action'
+import { useRouter } from 'next/navigation'
 
 export function ProductDetailsForm({
     initialProduct,
@@ -21,6 +22,7 @@ export function ProductDetailsForm({
         url: string
     }
 }) {
+    const { refresh } = useRouter()
     const { toast } = useToast()
     const form = useForm<ProductDetails>({
         resolver: zodResolver(productDetailsSchema),
@@ -38,7 +40,7 @@ export function ProductDetailsForm({
     const onSubmit: SubmitHandler<ProductDetails> = async (product) => {
         const action = initialProduct
             ? editProductAction.bind(null, { productId: initialProduct.id, editedProduct: product })
-            : createProductAction.bind(null, { createdProduct: product })
+            : createProductAction.bind(null, { unSafeCreatedProduct: product })
 
         const data = await action()
 
@@ -50,7 +52,7 @@ export function ProductDetailsForm({
             })
         }
 
-        form.reset()
+        refresh()
     }
 
     return (

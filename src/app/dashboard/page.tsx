@@ -1,10 +1,10 @@
+import type { FC } from 'react'
 import { getProducts } from '@/server/services/product-service'
 import { auth } from '@clerk/nextjs/server'
-import type { FC } from 'react'
-import Link from 'next/link'
 import { Button } from '@/lib/components/button'
 import { ArrowRightIcon, PlusIcon } from 'lucide-react'
 import { ProductGrid } from '@/features/dashboard/product-grid'
+import Link from 'next/link'
 
 const Page: FC = async () => {
     const { userId, redirectToSignIn } = await auth()
