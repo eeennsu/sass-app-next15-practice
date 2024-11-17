@@ -1,6 +1,6 @@
 import { startOfMonth } from 'date-fns'
 import { getUserSubscriptionTier } from './subscription-service'
-import { getProductCount } from './product-service';
+import { getProductCount } from './product-service'
 
 export async function canRemoveBranding({ userId }: { userId: string | null }) {
     if (userId == null) return false

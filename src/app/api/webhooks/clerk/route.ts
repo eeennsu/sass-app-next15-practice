@@ -2,8 +2,11 @@ import { Webhook } from 'svix'
 import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
 import { serverEnv } from '@/lib/data/env/server-env'
-import { createUserSubscription, deleteUser } from '@/server/services/subscription-service'
+import { createUserSubscription, deleteUser, getUserSubscription } from '@/server/services/subscription-service'
 import { NextResponse } from 'next/server'
+import Stripe from 'stripe'
+
+const stripe = new Stripe(serverEnv.STRIPE_SECRET_KEY)
 
 export async function POST(req: Request) {
     const headerPayload = await headers()
@@ -39,7 +42,9 @@ export async function POST(req: Request) {
         )
     }
 
-    if (!event.data?.id) {
+    const eventDataId = event.data?.id
+
+    if (!eventDataId) {
         console.error('Error -- no user id')
         return
     }
@@ -48,7 +53,7 @@ export async function POST(req: Request) {
         case 'user.created':
             await createUserSubscription({
                 userSubscription: {
-                    clerkUserId: event.data.id,
+                    clerkUserId: eventDataId,
                     tier: 'Free',
                 },
             })
@@ -56,8 +61,13 @@ export async function POST(req: Request) {
             break
 
         case 'user.deleted':
-            await deleteUser({ userId: event.data.id })
+            const userSubscription = await getUserSubscription({ userId: eventDataId })
 
+            if (!!userSubscription?.stripeSubscriptionId) {
+                await stripe.subscriptions.cancel(userSubscription.stripeSubscriptionId)
+            }
+
+            await deleteUser({ userId: eventDataId })
             // TODO: remove stripe subscription
 
             break

@@ -267,4 +267,3 @@ async function getProductCountInternal({ userId }: Parameters<typeof getProductC
 
     return query.at(0)?.productCount ?? 0
 }
-

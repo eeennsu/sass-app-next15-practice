@@ -17,19 +17,21 @@ export async function POST(request: NextRequest) {
 
     const stripeSubscription = event?.data?.object as Stripe.Subscription
 
+    console.log('event.type', event.type)
+
     switch (event.type) {
         case 'customer.subscription.created': {
-            handleCreateSubscription({ subscription: stripeSubscription })
+            await handleCreateSubscription({ subscription: stripeSubscription })
             break
         }
 
         case 'customer.subscription.updated': {
-            handleUpdateSubscription({ subscription: stripeSubscription })
+            await handleUpdateSubscription({ subscription: stripeSubscription })
             break
         }
 
         case 'customer.subscription.deleted': {
-            handleDeleteSubscription({ subscription: stripeSubscription })
+            await handleDeleteSubscription({ subscription: stripeSubscription })
 
             break
         }
@@ -40,16 +42,18 @@ export async function POST(request: NextRequest) {
 
 async function handleCreateSubscription({ subscription }: { subscription: Stripe.Subscription }) {
     const stripePriceId = subscription.items.data.at(0)?.price.id
-
     if (!stripePriceId) {
         throw new Error('No stripe price id')
     }
 
     const tier = getTierByPriceId({ stripePriceId })
-    const clerkUserId = subscription.metadata.clerkUserId
+    if (!tier) {
+        throw new Error('No tier')
+    }
 
-    if (!tier || !clerkUserId) {
-        return NextResponse.json({ message: 'Error: Tier or clerk user id not found.' }, { status: 500 })
+    const clerkUserId = subscription.metadata.clerkUserId
+    if (!clerkUserId) {
+        throw new Error('No clerk user id')
     }
 
     const customer = subscription.customer
@@ -67,5 +71,59 @@ async function handleCreateSubscription({ subscription }: { subscription: Stripe
         whereSQL: eq(UserSubscriptionTable.clerkUserId, clerkUserId),
     })
 }
-function handleUpdateSubscription({ subscription }: { subscription: Stripe.Subscription }) {}
-function handleDeleteSubscription({ subscription }: { subscription: Stripe.Subscription }) {}
+async function handleUpdateSubscription({ subscription }: { subscription: Stripe.Subscription }) {
+    const customer = subscription.customer
+    const customerId = typeof customer === 'string' ? customer : customer.id
+    let editedUserSubscriptionData: Partial<typeof UserSubscriptionTable.$inferInsert> = {}
+
+    if (subscription.cancel_at_period_end) {
+        editedUserSubscriptionData = {
+            tier: 'Free',
+            stripeCustomerId: null,
+            stripeSubscriptionId: null,
+            stripeSubscriptionItemId: null,
+        }
+
+        return await updateUserSubscription({
+            userSubscription: editedUserSubscriptionData,
+            whereSQL: eq(UserSubscriptionTable.stripeCustomerId, customerId),
+        })
+    } else {
+        const stripePriceId = subscription.items.data.at(0)?.price.id
+
+        if (!stripePriceId) {
+            throw new Error('No stripe price id')
+        }
+
+        const tier = getTierByPriceId({ stripePriceId })
+        if (!tier) {
+            throw new Error('No tier')
+        }
+
+        editedUserSubscriptionData = {
+            tier: tier.name,
+            stripeCustomerId: customerId,
+            stripeSubscriptionId: subscription.id,
+            stripeSubscriptionItemId: subscription.items.data.at(0)?.id,
+        }
+
+        return await updateUserSubscription({
+            userSubscription: editedUserSubscriptionData,
+            whereSQL: eq(UserSubscriptionTable.stripeCustomerId, customerId),
+        })
+    }
+}
+async function handleDeleteSubscription({ subscription }: { subscription: Stripe.Subscription }) {
+    const customer = subscription.customer
+    const customerId = typeof customer === 'string' ? customer : customer.id
+
+    return await updateUserSubscription({
+        userSubscription: {
+            tier: 'Free',
+            stripeCustomerId: null,
+            stripeSubscriptionId: null,
+            stripeSubscriptionItemId: null,
+        },
+        whereSQL: eq(UserSubscriptionTable.stripeCustomerId, customerId),
+    })
+}

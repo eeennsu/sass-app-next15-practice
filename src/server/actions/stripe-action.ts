@@ -1,60 +1,82 @@
 'use server'
 
 import { PaidTierNames, subscriptionTiers } from '@/lib/data/subscription-tiers'
-import { currentUser, User } from '@clerk/nextjs/server'
+import { auth, currentUser, User } from '@clerk/nextjs/server'
 import { getUserSubscription } from '../services/subscription-service'
 import { Stripe } from 'stripe'
 import { serverEnv } from '@/lib/data/env/server-env'
 import { clientEnv } from '@/lib/data/env/client-env'
 import { redirect } from 'next/navigation'
-import { NextResponse } from 'next/server'
 
 const stripe = new Stripe(serverEnv.STRIPE_SECRET_KEY)
 
 export async function createCancelSession() {
     const user = await currentUser()
-    if (!user) return { error: true }
+    if (!user) {
+        throw new Error('No user')
+    }
 
-    const subscription = await getUserSubscription({ userId: user.id })
-    if (!subscription) return { error: true }
-    if (!subscription?.stripeSubscriptionId || !subscription?.stripeCustomerId) {
-        return NextResponse.json({ error: 'No stripe subscription id or customer id' }, { status: 500 })
+    const userSubscription = await getUserSubscription({ userId: user.id })
+    if (!userSubscription) {
+        throw new Error('No user subscription')
+    }
+    if (!userSubscription?.stripeSubscriptionId || !userSubscription?.stripeCustomerId) {
+        throw new Error('No stripe subscription id or stripe customer id')
     }
 
     const portalSession = await stripe.billingPortal.sessions.create({
-        customer: subscription.stripeCustomerId,
+        customer: userSubscription.stripeCustomerId,
         return_url: `${clientEnv.NEXT_PUBLIC_SERVER_URL}/dashboard/subscription`,
         flow_data: {
             type: 'subscription_cancel',
             subscription_cancel: {
-                subscription: subscription.stripeSubscriptionId,
+                subscription: userSubscription.stripeSubscriptionId,
             },
         },
     })
 
     if (!portalSession?.url) {
-        return { error: true }
+        throw new Error('No portal session url')
     }
 
     redirect(portalSession?.url)
 }
-export async function createCustomerPortalSession() {}
+
+export async function createCustomerPortalSession() {
+    const { userId } = await auth()
+    if (!userId) throw new Error('No user')
+
+    const userSubscription = await getUserSubscription({ userId })
+    if (!userSubscription || !userSubscription?.stripeCustomerId)
+        throw new Error('No user subscription or stripe customer id')
+
+    const portalSession = await stripe.billingPortal.sessions.create({
+        customer: userSubscription.stripeCustomerId,
+        return_url: `${clientEnv.NEXT_PUBLIC_SERVER_URL}/dashboard/subscription`,
+    })
+
+    if (!portalSession?.url) {
+        throw new Error('No portal session url')
+    }
+
+    redirect(portalSession.url)
+}
 
 export async function createCheckoutSession({ tier }: { tier: PaidTierNames }) {
     const user = await currentUser()
     if (!user) {
-        return { error: true }
+        throw new Error('No user')
     }
 
     const userSubscription = await getUserSubscription({ userId: user.id })
     if (!userSubscription) {
-        return { error: true }
+        throw new Error('No user subscription')
     }
 
     if (!userSubscription?.stripeCustomerId) {
         const url = await getCheckoutSession({ tier, user })
         if (!url) {
-            return { error: true }
+            throw new Error('No url')
         }
 
         redirect(url)
@@ -69,7 +91,7 @@ export async function createCheckoutSession({ tier }: { tier: PaidTierNames }) {
         })
 
         if (!url) {
-            return { error: true }
+            throw new Error('No url')
         }
 
         redirect(url)
@@ -116,7 +138,7 @@ async function getSubscriptionUpgradeSession({
         throw new Error('No stripe customer id, subscription id, or subscription item id')
     }
 
-    // 특정 고객을 위한 고객 포털의 “1회 방문”을 설정하는 세션
+    // 특정 고객을 위한 고객 포털의 1회 방문을 설정하는 세션
     const portalSession = await stripe.billingPortal.sessions.create({
         customer: subscription.stripeCustomerId,
         return_url: `${clientEnv.NEXT_PUBLIC_SERVER_URL}/dashboard/subscription`,
@@ -137,5 +159,3 @@ async function getSubscriptionUpgradeSession({
 
     return portalSession?.url
 }
-
-

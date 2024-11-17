@@ -1,6 +1,6 @@
 import { ProductDetailsForm } from '@/features/dashboard/product-details-form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/lib/components/card'
-import { canCreateProduct } from '@/server/services/permission-service';
+import { canCreateProduct } from '@/server/services/permission-service'
 import { HasPermission } from '@/shared/common/has-permission'
 import { PageWithBackButton } from '@/shared/common/page-with-back-button'
 
